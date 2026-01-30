@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  clickstack:
+    image: clickhouse/clickstack-all-in-one:latest
+    container_name: clickstack
+    ports:
+      - "8080:8080"      # HyperDX UI
+      - "4317:4317"      # OpenTelemetry collector (gRPC)
+      - "4318:4318"      # OpenTelemetry collector (HTTP)
+    volumes:
+      - ./volumes/db:/data/db
+      - ./volumes/ch_data:/var/lib/clickhouse
+      - ./volumes/ch_logs:/var/log/clickhouse-server
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  service-three:
+    image: service-three:latest
+    container_name: rest-api
+    ports:
+      - "3003:3003"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4318
+      - OTEL_SERVICE_NAME=rest-api
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      clickstack:
+        condition: service_healthy
+
+  service-two:
+    image: service-two:latest
+    container_name: graphql-api
+    ports:
+      - "3002:3002"
+    environment:
+      - REST_SERVICE_URL=http://service-three:3003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4318
+      - OTEL_SERVICE_NAME=graphql-api
+    depends_on:
+      service-three:
+        condition: service_healthy
+      clickstack:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  service-one:
+    image: service-one:latest
+    container_name: react-ui
+    ports:
+      - "3001:3001"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4318
+      - OTEL_SERVICE_NAME=react-ui
+    depends_on:
+      service-two:
+        condition: service_healthy
+      clickstack:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
