@@ -9,13 +9,13 @@
     "build": "bun build ./src/index.tsx --outdir ./dist"
   },
   "dependencies": {
-    "@apollo/client": "^3.8.0",
+    "@apollo/client": "3.8.10",
     "@elysiajs/cors": "^1.0.0",
     "@elysiajs/static": "^1.0.0",
     "elysia": "^1.0.0",
     "graphql": "^16.8.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

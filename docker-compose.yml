@@ -2,23 +2,21 @@ version: '3.8'
 
 services:
   clickstack:
-    image: clickhouse/clickstack-all-in-one:latest
+    image: clickhouse/clickstack-local:latest
     container_name: clickstack
     ports:
       - "8080:8080"      # HyperDX UI
       - "4317:4317"      # OpenTelemetry collector (gRPC)
       - "4318:4318"      # OpenTelemetry collector (HTTP)
-    volumes:
-      - ./volumes/db:/data/db
-      - ./volumes/ch_data:/var/lib/clickhouse
-      - ./volumes/ch_logs:/var/log/clickhouse-server
+      - "8123:8123"      # ClickHouse HTTP interface
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   service-three:
     image: service-three:latest
@@ -31,7 +29,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -56,7 +54,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,7 +75,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 10s
       timeout: 5s
       retries: 5

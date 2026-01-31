@@ -2,13 +2,13 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, gql } from '@apollo/client'
 
-const GRAPHQL_URL = window.location.hostname === 'localhost'
-  ? 'http://localhost:3002/graphql'
-  : 'http://service-two:3002/graphql'
+const GRAPHQL_URL = 'http://localhost:3002/graphql'
+
+console.log('Initializing Apollo Client with URL:', GRAPHQL_URL)
 
 const client = new ApolloClient({
   uri: GRAPHQL_URL,
-  cache: new InMemoryCache()
+  cache: new InMemoryCache(),
 })
 
 const GET_USERS = gql`
@@ -25,8 +25,25 @@ const GET_USERS = gql`
 function UserList() {
   const { loading, error, data } = useQuery(GET_USERS)
 
+  console.log('Query state:', { loading, error, data })
+
   if (loading) return <div className="loading">Loading users...</div>
-  if (error) return <div className="error">Error: {error.message}</div>
+  if (error) {
+    console.error('GraphQL Error:', error)
+    return (
+      <div className="error">
+        <h3>Error loading users</h3>
+        <p>{error.message}</p>
+        <p style={{ fontSize: '0.8rem', marginTop: '1rem' }}>
+          Check browser console for details
+        </p>
+      </div>
+    )
+  }
+
+  if (!data || !data.users) {
+    return <div className="error">No data received</div>
+  }
 
   return (
     <div className="users-grid">
@@ -164,5 +181,14 @@ style.textContent = `
 `
 document.head.appendChild(style)
 
-const root = ReactDOM.createRoot(document.getElementById('root')!)
-root.render(<App />)
+console.log('React app starting...')
+
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  console.error('Root element not found!')
+} else {
+  console.log('Root element found, mounting React app')
+  const root = ReactDOM.createRoot(rootElement)
+  root.render(<App />)
+  console.log('React app rendered')
+}

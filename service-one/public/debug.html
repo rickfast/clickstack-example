@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Page</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #fff; }
+    .section { margin: 20px 0; padding: 15px; background: #2d2d2d; border-radius: 5px; }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    .warning { color: #ff9800; }
+    pre { background: #000; padding: 10px; overflow-x: auto; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Debug Dashboard</h1>
+
+  <div class="section">
+    <h2>1. Current Page Info</h2>
+    <pre id="page-info"></pre>
+  </div>
+
+  <div class="section">
+    <h2>2. Test GraphQL Connection</h2>
+    <button onclick="testGraphQL()">Test GraphQL Query</button>
+    <pre id="graphql-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>3. Test React App</h2>
+    <button onclick="window.location.href='/'">Go to React App</button>
+  </div>
+
+  <div class="section">
+    <h2>4. Check JavaScript Console</h2>
+    <p>Open DevTools (F12) and check for errors in the Console tab</p>
+  </div>
+
+  <script>
+    // Page info
+    document.getElementById('page-info').textContent = JSON.stringify({
+      location: window.location.href,
+      userAgent: navigator.userAgent,
+      cookiesEnabled: navigator.cookieEnabled,
+      onLine: navigator.onLine
+    }, null, 2);
+
+    // Test GraphQL
+    async function testGraphQL() {
+      const result = document.getElementById('graphql-result');
+      result.textContent = 'Testing...';
+
+      try {
+        console.log('Starting GraphQL test...');
+        const response = await fetch('http://localhost:3002/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: '{ users { id name email role } }'
+          })
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
+
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        result.innerHTML = '<span class="success">✓ GraphQL Working!</span>\n' +
+                          JSON.stringify(data, null, 2);
+      } catch (error) {
+        console.error('GraphQL test error:', error);
+        result.innerHTML = '<span class="error">✗ Error: ' + error.message + '</span>\n' +
+                          error.stack;
+      }
+    }
+
+    // Capture console logs
+    const originalLog = console.log;
+    const originalError = console.error;
+    const logs = [];
+
+    console.log = function(...args) {
+      logs.push({type: 'log', args});
+      originalLog.apply(console, args);
+    };
+
+    console.error = function(...args) {
+      logs.push({type: 'error', args});
+      originalError.apply(console, args);
+    };
+
+    // Auto-test on load
+    window.addEventListener('load', () => {
+      console.log('Debug page loaded successfully');
+    });
+  </script>
+</body>
+</html>
