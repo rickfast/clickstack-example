@@ -10,10 +10,13 @@
   "dependencies": {
     "@elysiajs/cors": "^1.0.0",
     "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/api-logs": "^0.46.0",
     "@opentelemetry/auto-instrumentations-node": "^0.40.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.46.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.46.0",
     "@opentelemetry/instrumentation-http": "^0.46.0",
     "@opentelemetry/resources": "^1.19.0",
+    "@opentelemetry/sdk-logs": "^0.46.0",
     "@opentelemetry/sdk-node": "^0.46.0",
     "@opentelemetry/sdk-trace-node": "^1.19.0",
     "@opentelemetry/semantic-conventions": "^1.19.0",

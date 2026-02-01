@@ -4,6 +4,8 @@ import { cors } from '@elysiajs/cors'
 
 // Build the React app on startup
 console.log('🔨 Building React app...')
+
+const startTime = Date.now()
 const buildResult = await Bun.build({
   entrypoints: ['./src/index.tsx'],
   outdir: './dist',
@@ -15,12 +17,17 @@ if (!buildResult.success) {
   console.error('❌ Build failed:', buildResult.logs)
   process.exit(1)
 }
-console.log('✅ Build complete!')
+const buildTime = Date.now() - startTime
+console.log(`✅ Build complete in ${buildTime}ms!`)
 
 const app = new Elysia()
   .use(cors())
-  .get('/health', () => ({ status: 'ok' }))
+  .get('/health', () => {
+    console.log('Health check requested')
+    return { status: 'ok' }
+  })
   .get('/test', () => {
+    console.log('Test page accessed')
     return new Response(`
       <html>
         <body style="font-family: sans-serif; padding: 2rem;">
@@ -52,6 +59,7 @@ const app = new Elysia()
     })
   })
   .get('/app.js', () => {
+    console.log('Serving bundled React app')
     return new Response(Bun.file('./dist/index.js'), {
       headers: {
         'Content-Type': 'application/javascript'
@@ -59,6 +67,7 @@ const app = new Elysia()
     })
   })
   .get('/', () => {
+    console.log('Serving React UI home page')
     return new Response(Bun.file('./public/index.html'), {
       headers: {
         'Content-Type': 'text/html'
